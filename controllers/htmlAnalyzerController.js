@@ -15,7 +15,6 @@ app.use(express.json());
 exports.analyzeFile = async (req, res) => {
     try {
         const filePath = req.file?.path;
-        console.log(filePath, req.file, req.file?.originalname);
         const htmlContent = await fs.readFile(filePath, 'utf-8');
      
         //check if the file is a valid html file

@@ -20,4 +20,4 @@ app.use(express.json());
 app.post('/upload', cors(corsOptions), uploads.single('htmlFile'), analyzeFile);
 
 
-app.listen(5000, () => console.log('running'));
+app.listen(5000, () => console.log('running...'));
