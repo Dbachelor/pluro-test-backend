@@ -4,19 +4,35 @@ const { suggestions } = require('../utils');
 
 function analyzeAccessibility(htmlContent) {
  const $ = cheerio.load(htmlContent);
+ const lines = htmlContent.split('\n');
  const issues = [];
  let complianceScore = 100;
 
  // Check for missing alt attributes on images
  $('img').each((_, img) => {
+  let imgTag = $.html(img); 
+  let lineNumber = (lines.findIndex((line) => line.includes(imgTag))) 
+  if (lineNumber >= 0) {
+    lineNumber = 'on line ' + lineNumber + 1
+  }else{
+    lineNumber = ''
+  }
    if (!$(img).attr('alt') || $(img).attr('alt') == '') {
-     issues.push({ type: 'Missing alt attribute', element: $(img).toString(), suggestion: suggestions.img });
+     issues.push({ type: 'Missing alt attribute on line ' + lineNumber, element: $(img).toString(), suggestion: suggestions.img });
      complianceScore -= 5;
    }
  });
 
  if (!$("title") || $("title")?.text() == ''){
-  issues.push({ type: 'Missing title tag', element: $("title")?.toString(), suggestion: suggestions.title });
+  const title = $.html($("title")); 
+  let lineNumber = (lines.findIndex((line) => line.includes($("title")))) 
+  console.log(lineNumber)
+  if (lineNumber >= 0) {
+    lineNumber = 'on line ' + lineNumber + 1
+  }else{
+    lineNumber = ''
+  }
+  issues.push({ type: 'Missing title tag or title tag value ' + lineNumber, element: $("title")?.toString() || '<title><title>', suggestion: suggestions.title });
     complianceScore -= 10
  }
 
@@ -30,14 +46,22 @@ function analyzeAccessibility(htmlContent) {
 
  for (let i = 0; i <= headings.length; i++) {
    if (headings[i + 1] > headings[i] + 1) {
-     issues.push({ type: 'Skipped heading level', element: `Cannot move from <h${headings[i]}> to <h${headings[i + 1]}> `, suggestion: suggestions.heading });
+     issues.push({ type: 'Skipped heading level in document', element: `Cannot move from <h${headings[i]}> to <h${headings[i + 1]}> `, suggestion: suggestions.heading });
      complianceScore -= 5;
    }
  }
 
   // Check for inline styles
   $('[style]').each((_, element) => {
-    issues.push({ type: 'Inline style detected', element: $(element).toString(), suggestion: suggestions.inlineStyle });
+    let _style = $.html(element);
+    let lineNumber = (lines.findIndex((line) => line.includes(_style))) 
+    console.log(lineNumber, _style)
+    if (lineNumber >= 0) {
+      lineNumber = 'on line ' + lineNumber + 1
+    }else{
+      lineNumber = ''
+    }
+    issues.push({ type: 'Inline style detected ' + lineNumber, element: $(element).toString(), suggestion: suggestions.inlineStyle });
     complianceScore -= 3;
   });
 
@@ -46,7 +70,14 @@ function analyzeAccessibility(htmlContent) {
   $('[id]').each((_, element) => {
     const id = $(element).attr('id');
     if (ids[id]) {
-      issues.push({ type: 'Duplicate ID detected', element: $(element).toString(), suggestion: suggestions.duplicateID });
+      let _ids = $.html(element);
+      let lineNumber = (lines.findIndex((line) => line.includes(_ids)))
+      if (lineNumber >= 0) {
+        lineNumber = 'on line ' + lineNumber + 1
+      }else{
+        lineNumber = ''
+      }
+      issues.push({ type: 'Duplicate ID detected ' + lineNumber, element: $(element).toString(), suggestion: suggestions.duplicateID });
       complianceScore -= 8;
     } else {
       ids[id] = true;
@@ -59,7 +90,14 @@ function analyzeAccessibility(htmlContent) {
     const id = $(input).attr('id');
     const hasLabel = $(`label[for="${id}"]`).length > 0;
     if (!hasLabel) {
-      issues.push({ type: 'Missing label for input', element: $(input).toString(), suggestion: suggestions.missingLabels });
+      let _labels = $.html(input);
+      let lineNumber = (lines.findIndex((line) => line.includes(_labels)))
+      if (lineNumber >= 0) {
+        lineNumber = 'on line ' + lineNumber + 1
+      }else{
+        lineNumber = ''
+      }
+      issues.push({ type: 'Missing label for input ' + lineNumber, element: $(input).toString(), suggestion: suggestions.missingLabels });
       complianceScore -= 3;
     }
   });
@@ -70,7 +108,14 @@ function analyzeAccessibility(htmlContent) {
   $('div').each((_, div) => {
     const content = $(div)?.text().trim();
     if (content && /Navigation|Section/.test(content)) {
-      issues.push({ type: 'Non-semantic tag used', element: $(div).toString(), suggestion: suggestions.nonSemanticTag });
+      let _semantic = $.html(div);
+      let lineNumber = (lines.findIndex((line) => line.includes(_semantic)))
+      if (lineNumber >= 0) {
+        lineNumber = 'on line ' + lineNumber + 1
+      }else{
+        lineNumber = ''
+      }
+      issues.push({ type: 'Non-semantic tag used ' + lineNumber, element: $(div).toString(), suggestion: suggestions.nonSemanticTag });
       complianceScore -= 2;
     }
   });
