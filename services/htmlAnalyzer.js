@@ -1,5 +1,6 @@
 const cheerio = require('cheerio');
 const { suggestions } = require('../utils');
+const { lineDetectorTextService } = require('./lineDetectorTextService');
 
 
 function analyzeAccessibility(htmlContent) {
@@ -11,28 +12,15 @@ function analyzeAccessibility(htmlContent) {
  // Check for missing alt attributes on images
  $('img').each((_, img) => {
   let imgTag = $.html(img); 
-  let lineNumber = (lines.findIndex((line) => line.includes(imgTag))) 
-  if (lineNumber >= 0) {
-    lineNumber = 'on line ' + lineNumber + 1
-  }else{
-    lineNumber = ''
-  }
    if (!$(img).attr('alt') || $(img).attr('alt') == '') {
-     issues.push({ type: 'Missing alt attribute on line ' + lineNumber, element: $(img).toString(), suggestion: suggestions.img });
+     issues.push({ type: `Missing alt attribute on line ${lineDetectorTextService(lines, imgTag)}`, element: $(img).toString(), suggestion: suggestions.img });
      complianceScore -= 5;
    }
  });
 
  if (!$("title") || $("title")?.text() == ''){
   const title = $.html($("title")); 
-  let lineNumber = (lines.findIndex((line) => line.includes($("title")))) 
-  console.log(lineNumber)
-  if (lineNumber >= 0) {
-    lineNumber = 'on line ' + lineNumber + 1
-  }else{
-    lineNumber = ''
-  }
-  issues.push({ type: 'Missing title tag or title tag value ' + lineNumber, element: $("title")?.toString() || '<title><title>', suggestion: suggestions.title });
+  issues.push({ type: `Missing title tag or title tag value ${lineDetectorTextService(lines, $("title"))}`, element: $("title")?.toString() || '<title><title>', suggestion: suggestions.title });
     complianceScore -= 10
  }
 
@@ -54,14 +42,7 @@ function analyzeAccessibility(htmlContent) {
   // Check for inline styles
   $('[style]').each((_, element) => {
     let _style = $.html(element);
-    let lineNumber = (lines.findIndex((line) => line.includes(_style))) 
-    console.log(lineNumber, _style)
-    if (lineNumber >= 0) {
-      lineNumber = 'on line ' + lineNumber + 1
-    }else{
-      lineNumber = ''
-    }
-    issues.push({ type: 'Inline style detected ' + lineNumber, element: $(element).toString(), suggestion: suggestions.inlineStyle });
+    issues.push({ type: `Inline style detected ${lineDetectorTextService(lines, _style)}`, element: $(element).toString(), suggestion: suggestions.inlineStyle });
     complianceScore -= 3;
   });
 
@@ -71,13 +52,7 @@ function analyzeAccessibility(htmlContent) {
     const id = $(element).attr('id');
     if (ids[id]) {
       let _ids = $.html(element);
-      let lineNumber = (lines.findIndex((line) => line.includes(_ids)))
-      if (lineNumber >= 0) {
-        lineNumber = 'on line ' + lineNumber + 1
-      }else{
-        lineNumber = ''
-      }
-      issues.push({ type: 'Duplicate ID detected ' + lineNumber, element: $(element).toString(), suggestion: suggestions.duplicateID });
+      issues.push({ type: `Duplicate ID detected ${lineDetectorTextService(lines, _ids)}`, element: $(element).toString(), suggestion: suggestions.duplicateID });
       complianceScore -= 8;
     } else {
       ids[id] = true;
@@ -91,13 +66,7 @@ function analyzeAccessibility(htmlContent) {
     const hasLabel = $(`label[for="${id}"]`).length > 0;
     if (!hasLabel) {
       let _labels = $.html(input);
-      let lineNumber = (lines.findIndex((line) => line.includes(_labels)))
-      if (lineNumber >= 0) {
-        lineNumber = 'on line ' + lineNumber + 1
-      }else{
-        lineNumber = ''
-      }
-      issues.push({ type: 'Missing label for input ' + lineNumber, element: $(input).toString(), suggestion: suggestions.missingLabels });
+      issues.push({ type: `Missing label for input ${lineDetectorTextService(lines, _labels)}`, element: $(input).toString(), suggestion: suggestions.missingLabels });
       complianceScore -= 3;
     }
   });
@@ -109,13 +78,8 @@ function analyzeAccessibility(htmlContent) {
     const content = $(div)?.text().trim();
     if (content && /Navigation|Section/.test(content)) {
       let _semantic = $.html(div);
-      let lineNumber = (lines.findIndex((line) => line.includes(_semantic)))
-      if (lineNumber >= 0) {
-        lineNumber = 'on line ' + lineNumber + 1
-      }else{
-        lineNumber = ''
-      }
-      issues.push({ type: 'Non-semantic tag used ' + lineNumber, element: $(div).toString(), suggestion: suggestions.nonSemanticTag });
+      
+      issues.push({ type: `Non-semantic tag used ${lineDetectorTextService(lines, _semantic)}`, element: $(div).toString(), suggestion: suggestions.nonSemanticTag });
       complianceScore -= 2;
     }
   });
