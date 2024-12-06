@@ -3,6 +3,7 @@
     - cd into the root folder and run npm install or sudo npm install depending on the system user level
     - run nodemon app.js in the terminal to start the backend server
     - minimum of node v18 is required to run successfully
+    - npm run test to execute test cases
 
 # Project architecture & scoring mechanism
 - The project uses cheerio library to analyze html files and then generates a compliance score based on the clauses it checks against.

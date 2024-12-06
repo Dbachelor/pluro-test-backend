@@ -1,10 +1,8 @@
 const express = require('express');
 const multer = require('multer');
 const cors = require('cors');
-// const fs = require('fs').promises;
-// const path = require('path');
-// const { analyzeAccessibility } = require('./services/htmlAnalyzer');
-const { analyzeFile } = require('./controllers/htmlAnalyzerController');
+const { FileAnalyzer } = require('./controllers/htmlAnalyzerController');
+let fileAnalyzerController = new FileAnalyzer();
 
 
 
@@ -17,7 +15,7 @@ let corsOptions = {
 app.use(express.json());
 
 
-app.post('/upload', cors(corsOptions), uploads.single('htmlFile'), analyzeFile);
+app.post('/upload', cors(corsOptions), uploads.single('htmlFile'), fileAnalyzerController.analyzeFile);
 
 
 app.listen(5000, () => console.log('running...'));
